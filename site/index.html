@@ -35,9 +35,11 @@
   .tbChip input{accent-color:var(--amber);cursor:pointer;}
   /* Voice & radio (20-Oct-2026): the Clearance Delivery panel standard (App Conventions §12), behind a
      🔊 button in the top bar; closed by default. Quiz palette/fonts per the §3a exception. Quiz adds Mute ATC. */
-  .vpToggle{display:inline-flex;align-items:center;justify-content:center;flex:none;width:38px;height:30px;
-    margin-left:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel2);font-size:16px;line-height:1;cursor:pointer;color:var(--text);}
-  .vpToggle:hover,.vpToggle[aria-expanded="true"]{border-color:var(--amber);}
+  /* §12 button icon (option B, 20-Oct-2026): flat amber speaker; speaker + × when muted */
+  .vpToggle{display:inline-flex;align-items:center;justify-content:center;flex:none;width:38px;height:30px;padding:0;
+    margin-left:auto;border:1px solid rgba(255,176,32,.45);border-radius:6px;background:rgba(255,176,32,.08);cursor:pointer;color:var(--amber);}
+  .vpToggle:hover,.vpToggle[aria-expanded="true"]{border-color:var(--amber);background:rgba(255,176,32,.16);}
+  .vpToggle svg{width:20px;height:20px;display:block;}
   .vpPanel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px 10px;margin-bottom:6px;}
   .vpPanel[hidden]{display:none;}
   .vpHead{font-size:12.5px;color:var(--amber);margin-bottom:6px;}
@@ -537,7 +539,14 @@ function buildVoiceOptionsHTML(){
 }
 function vpToggleHTML(){
   return `<button type="button" class="vpToggle" aria-expanded="${voicePanelOpen}" aria-controls="vpPanel" onclick="toggleVoicePanel()"
-    title="Voice &amp; radio" aria-label="Voice and radio settings${muteATC?' (ATC muted)':''}"><span class="vpIcon" aria-hidden="true">${muteATC?'🔇':'🔊'}</span></button>`;
+    title="Voice &amp; radio" aria-label="Voice and radio settings${muteATC?' (ATC muted)':''}"><span class="vpIcon" aria-hidden="true">${vpIconSVG()}</span></button>`;
+}
+function vpIconSVG(){
+  const spk = '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>';
+  const tail = muteATC
+    ? '<path d="M16 9.5l5 5M21 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'
+    : '<path d="M15.5 9a4.2 4.2 0 0 1 0 6M18.3 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>';
+  return `<svg viewBox="0 0 24 24" focusable="false">${spk}${tail}</svg>`;
 }
 function vpSlider(id,label,min,max,step){
   return `<div class="vpSlider"><span>${label}</span><input type="range" min="${min}" max="${max}" step="${step}" value="${VP[id]}"
@@ -582,7 +591,7 @@ function setMute(on){ muteATC=!!on; if(muteATC) try{window.speechSynthesis.cance
 function syncVoiceSelects(){
   const opts = buildVoiceOptionsHTML();
   document.querySelectorAll('.voiceSelect').forEach(el=>{ el.innerHTML = opts; });
-  document.querySelectorAll('.vpIcon').forEach(el=>{ el.textContent = muteATC?'🔇':'🔊'; });
+  document.querySelectorAll('.vpIcon').forEach(el=>{ el.innerHTML = vpIconSVG(); });
 }
 function refreshVoiceSelects(){ syncVoiceSelects(); }
 function onVoiceChange(el){ if(el.value){ selectedVoiceName = el.value; vpSave(); } }
