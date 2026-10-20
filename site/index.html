@@ -25,21 +25,43 @@
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
   #app{max-width:760px;margin:0 auto;
-    padding:calc(20px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(60px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));}
+    padding:calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));}
 
-  .topbar{display:flex;flex-wrap:wrap;align-items:center;gap:9px 18px;
-    padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;
-    margin-bottom:16px;font-family:var(--mono);font-size:13px;color:var(--muted);}
+  .topbar{display:flex;flex-wrap:nowrap;align-items:center;gap:6px 10px;
+    padding:6px 10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    margin-bottom:6px;font-family:var(--mono);font-size:13px;color:var(--muted);}
   .topbar b{color:var(--green-ann);}
   .tbChip{white-space:nowrap;display:flex;align-items:center;gap:6px;}
   .tbChip input{accent-color:var(--amber);cursor:pointer;}
-  .tbShareBtn{background:var(--panel2);color:var(--blue);border:1px solid var(--line);
-    border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:13px;cursor:pointer;}
-  .tbShareBtn:hover{border-color:var(--blue);}
-  .progressWrap{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:22px;}
+  /* Voice & radio (20-Oct-2026): the Clearance Delivery panel standard (App Conventions §12), behind a
+     🔊 button in the top bar; closed by default. Quiz palette/fonts per the §3a exception. Quiz adds Mute ATC. */
+  .vpToggle{display:inline-flex;align-items:center;justify-content:center;flex:none;width:38px;height:30px;
+    margin-left:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel2);font-size:16px;line-height:1;cursor:pointer;color:var(--text);}
+  .vpToggle:hover,.vpToggle[aria-expanded="true"]{border-color:var(--amber);}
+  .vpPanel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px 10px;margin-bottom:6px;}
+  .vpPanel[hidden]{display:none;}
+  .vpHead{font-size:12.5px;color:var(--amber);margin-bottom:6px;}
+  .vpLabel{display:block;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:2px 0 3px;}
+  .vpPanel select{width:100%;font:16px var(--sans);color:var(--text);background:var(--bg);border:1px solid var(--line);
+    border-radius:8px;padding:6px 8px;margin-bottom:4px;}
+  .vpSlider{display:grid;grid-template-columns:62px minmax(0,1fr) 50px;align-items:center;gap:8px;margin:2px 0;}
+  .vpSlider span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+  .vpSlider input{width:100%;accent-color:var(--amber);margin:0;}
+  .vpSlider output{font:500 12px var(--mono);color:var(--amber);text-align:right;}
+  .vpPresets{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 4px 70px;}
+  .vpBtn{font:500 12px var(--sans);padding:5px 9px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;}
+  .vpBtn:hover{color:var(--amber);border-color:var(--amber);}
+  .vpChk{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text);cursor:pointer;margin-top:6px;}
+  .vpChk input{width:17px;height:17px;accent-color:var(--amber);flex:none;margin:0;}
+  .vpChk small{color:var(--muted);font-size:11.5px;}
+  .vpPanel select.voiceSelect{max-width:none;color:var(--text);font-family:var(--sans);background:var(--bg);}
+  .vpPanel select.voiceSelect:hover{color:var(--text);border-color:var(--amber);}
+  @media (max-width:430px){ .vpPresets{margin-left:0;gap:5px;} .vpBtn{padding:5px 8px;} }
+  .vpHint{font-size:11.5px;color:var(--muted);line-height:1.4;margin:6px 0 0;}
+  .progressWrap{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:10px;}
   .progressBar{height:100%;background:var(--green-ann);width:0%;transition:width .3s ease;}
 
-  h1{font-size:20px;font-weight:600;letter-spacing:.2px;margin:0 0 4px;}
+  h1{font-size:18px;line-height:1.25;font-weight:600;letter-spacing:.2px;margin:0 0 2px;}
   .purposeLine{font-size:13.5px;line-height:1.5;margin:0 0 16px;}
   .cmdStrip{display:grid;grid-template-columns:repeat(5,1fr);max-width:340px;margin:0 auto 20px;border:1px solid #333;}
   .cmdStrip div{background:#5f5f5f;font:400 20px/1 Arial,Helvetica,sans-serif;text-align:center;padding:14px 0;border-left:1px solid #4a4a4a;}
@@ -59,8 +81,8 @@
   .sitGfx{flex:0 0 auto;align-self:flex-end;display:flex;gap:4px;padding:6px;border-radius:10px;border:1px solid var(--line);
     background:linear-gradient(#3a6fae 0%, #3a6fae 52%, #e8ecef 52%, #e8ecef 52.6%, #6b4a26 52.6%, #6b4a26 100%);}
   .sitGfx svg{display:block;}
-  @media (max-width:560px){ .qTop{flex-direction:column;} .sitGfx{align-self:center;} }
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px;}
+  @media (max-width:560px){ .qTop{flex-direction:column;gap:8px;} .sitGfx{align-self:center;} }
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;}
 
   .atcRow{display:flex;align-items:flex-start;gap:10px;}
   .atcIcon{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:rgba(90,180,255,.12);
@@ -68,35 +90,36 @@
   .atcText{flex:1;font-size:15.5px;line-height:1.5;color:var(--text);}
   .graySuffix{color:var(--muted);}
   .atcLabel{font-family:var(--mono);font-size:10.5px;color:var(--blue);letter-spacing:.06em;margin-bottom:3px;}
-  .speakBtn{margin-top:8px;font-family:var(--mono);font-size:11.5px;color:var(--blue);
+  .speakBtn{margin-top:5px;font-family:var(--mono);font-size:11.5px;color:var(--blue);
     background:transparent;border:1px solid rgba(90,180,255,.35);border-radius:20px;padding:4px 11px;cursor:pointer;}
   .speakBtn:hover{background:rgba(90,180,255,.1);}
 
-  .actionsLabel{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.06em;margin:16px 0 8px;}
+  .actionsLabel{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.06em;margin:10px 0 4px;}
   .situationText{font-size:14.5px;line-height:1.5;color:var(--text);}
   ul.actions{margin:0;padding-left:20px;}
-  ul.actions li{font-size:14.5px;line-height:1.6;color:var(--text);margin-bottom:3px;}
+  ul.actions li{font-size:14.5px;line-height:1.45;color:var(--text);margin-bottom:2px;}
   .noAction{font-size:13.5px;color:var(--muted);font-style:italic;padding:4px 0;}
-  .contNote{font-family:var(--mono);font-size:12.5px;color:var(--cyan);margin:10px 0 16px;}
-  .preamble{font-size:13.5px;color:var(--muted);font-style:italic;margin-bottom:14px;}
-  .flagLine{font-size:13.5px;color:var(--text);margin-bottom:14px;}
-  .flightImgWrap{margin:0 0 18px;}
+  .contNote{font-family:var(--mono);font-size:12.5px;color:var(--cyan);margin:4px 0 8px;}
+  .preamble{font-size:13.5px;color:var(--muted);font-style:italic;margin-bottom:8px;}
+  .flagLine{font-size:13.5px;color:var(--text);margin-bottom:8px;}
+  .flightImgWrap{margin:0 0 8px;}
   .flightImgBox{position:relative;width:66.67%;margin:0 auto;border-radius:12px;overflow:hidden;}
   .flightImg{width:100%;border-radius:12px;border:1px solid var(--line);display:block;box-sizing:border-box;}
   .flightAc{position:absolute;transform:translate(-50%,-50%);overflow:visible;pointer-events:none;
     filter:drop-shadow(0 0 1.5px rgba(0,0,0,.8));}
-  .flightImgCaption{text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px;}
+  .flightImgCaption{text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:3px;}
 
-  .refLink{display:flex;align-items:center;gap:8px;margin-top:14px;padding:10px 12px;
+  .refLink{display:flex;align-items:center;gap:8px;margin-top:8px;padding:7px 12px;
     background:rgba(255,176,32,.07);border:1px solid rgba(255,176,32,.3);border-radius:10px;
     font-size:13px;color:var(--amber);text-decoration:none;}
   .refLink:hover{background:rgba(255,176,32,.13);}
 
-  .slotsLabel{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.06em;margin:18px 0 10px;}
+  .slotsLabel{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.06em;margin:12px 0 8px;}
+  .card > .slotsLabel:first-child{margin-top:0;}
   .slotGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
   .slotGroup{margin-bottom:4px;min-width:0;}
   .slotGroup.apGroup{background:#2c3540;border-radius:10px;padding:5px;margin:-5px -5px -1px;}
-  .slotName{font-size:10.5px;color:var(--muted);margin-bottom:6px;font-family:var(--mono);letter-spacing:.02em;min-height:26px;}
+  .slotName{font-size:10.5px;color:var(--muted);margin-bottom:4px;font-family:var(--mono);letter-spacing:.02em;min-height:26px;}
   .slotBox{position:relative;display:flex;align-items:center;justify-content:center;min-height:42px;
     font-family:var(--mono);font-size:16px;font-weight:700;line-height:1.15;padding:6px 4px;text-align:center;
     border-radius:8px;background:var(--panel2);}
@@ -121,18 +144,18 @@
   .mcOption:hover{border-color:#3a4552;}
   .mcOption.sel{border-color:var(--blue);background:rgba(90,180,255,.1);}
 
-  .submitBtn{width:100%;margin-top:8px;padding:13px;border-radius:10px;border:none;
+  .submitBtn{width:100%;margin-top:10px;padding:11px;border-radius:10px;border:none;
     background:var(--green-ann);color:#08110c;font-weight:600;font-size:14.5px;cursor:pointer;}
   .submitBtn:disabled{background:#2a323b;color:var(--muted);cursor:not-allowed;}
-  .nextBtn{width:100%;margin-top:14px;padding:13px;border-radius:10px;border:1px solid var(--line);
+  .nextBtn{width:100%;margin-top:10px;padding:11px;border-radius:10px;border:1px solid var(--line);
     background:var(--panel2);color:var(--text);font-weight:600;font-size:14.5px;cursor:pointer;}
 
-  .resultBanner{margin-top:16px;padding:12px 14px;border-radius:10px;font-family:var(--mono);
+  .resultBanner{margin-top:10px;padding:9px 12px;border-radius:10px;font-family:var(--mono);
     font-size:13px;display:flex;align-items:center;gap:10px;}
   .resultBanner.good{background:rgba(53,208,127,.1);border:1px solid rgba(53,208,127,.4);color:var(--green-ann);}
   .resultBanner.bad{background:rgba(255,92,92,.1);border:1px solid rgba(255,92,92,.4);color:var(--red);}
 
-  .annStrip{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .annStrip{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
   .annBox{font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:8px;flex:1;min-width:90px;text-align:center;}
   .annBox .k{display:block;font-size:9.5px;color:var(--muted);margin-bottom:3px;letter-spacing:.05em;}
   .annBox.match{background:rgba(53,208,127,.1);border:1px solid rgba(53,208,127,.4);}
@@ -154,9 +177,6 @@
 
   .startBtn{width:100%;padding:15px;border-radius:12px;border:none;background:var(--green-ann);
     color:#08110c;font-weight:700;font-size:15.5px;cursor:pointer;margin-top:10px;}
-  .shareBtn{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);
-    color:var(--blue);font-weight:600;font-size:13.5px;cursor:pointer;margin-top:14px;}
-  .shareBtn:hover{border-color:var(--blue);}
 
   .summaryScore{font-size:44px;font-weight:700;font-family:var(--mono);color:var(--green-ann);margin:6px 0 2px;}
   .kiRecap{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
@@ -166,14 +186,15 @@
   .replayBtn{width:100%;padding:13px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);
     color:var(--text);font-weight:600;font-size:14px;cursor:pointer;margin-top:16px;}
 
-  .muteRow{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:11.5px;color:var(--muted);}
+  .muteRow .vpToggle{margin-left:0;}
+  .muteRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:11.5px;color:var(--muted);}
   .muteRow label{display:flex;align-items:center;gap:5px;cursor:pointer;}
   .muteRow input{accent-color:var(--amber);cursor:pointer;}
   select.voiceSelect{font-family:var(--mono);font-size:16px;color:var(--muted);background:var(--panel2);
     border:1px solid var(--line);border-radius:6px;padding:3px 6px;cursor:pointer;max-width:220px;}
   select.voiceSelect:hover{border-color:var(--blue);color:var(--blue);}
   select.flightSelect{font-family:var(--mono);font-size:16px;color:var(--muted);background:var(--panel);
-    border:1px solid var(--line);border-radius:6px;padding:2px 6px;cursor:pointer;}
+    border:1px solid var(--line);border-radius:6px;padding:2px 4px;cursor:pointer;flex:0 1 auto;min-width:0;}
   select.flightSelect:hover{border-color:var(--blue);color:var(--blue);}
   button:focus-visible,select:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
   @media (max-width:480px){ .chip{font-size:11.5px;padding:5px 9px;} }
@@ -483,10 +504,13 @@ function getVoices(){
 }
 function refreshVoicesAndDefault(){
   voicesCache = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
-  if(!selectedVoiceName && voicesCache.length){
-    const samantha = voicesCache.find(v=>v.name.toLowerCase()==='samantha');
-    const englishFirst = voicesCache.find(v=>v.lang && v.lang.startsWith('en'));
-    selectedVoiceName = (samantha||englishFirst||voicesCache[0]).name;
+  if(voicesCache.length && (!selectedVoiceName || !voicesCache.some(v=>v.name===selectedVoiceName))){
+    let pick = null;
+    for(const want of [/^Samantha\b/i, /Google US English/i, /^Alex\b/i, /^Aaron\b/i]){   // Clearance Delivery order
+      pick = voicesCache.find(v=>/en-US/i.test(v.lang) && want.test(v.name)); if(pick) break;
+    }
+    pick = pick || voicesCache.find(v=>/en-US/i.test(v.lang)) || voicesCache.find(v=>v.lang && v.lang.startsWith('en')) || voicesCache[0];
+    selectedVoiceName = pick.name;
   }
   syncVoiceSelects();
 }
@@ -495,21 +519,73 @@ if(window.speechSynthesis){
 }
 refreshVoicesAndDefault();
 
+// ---- Voice & radio (App Conventions §12, from Clearance Delivery; per device, storage may be blocked) ----
+const VP_KEY='quiz.voice.v1';
+const VP={voice:'', rate:0.85, pitch:1, vol:1, noise:0, squelch:true, mute:false};
+try{ Object.assign(VP, JSON.parse(localStorage.getItem(VP_KEY)||'{}')||{}); }catch(e){}
+muteATC = !!VP.mute;
+if(VP.voice) selectedVoiceName = VP.voice;
+function vpSave(){ VP.voice=selectedVoiceName||VP.voice; VP.mute=muteATC; try{ localStorage.setItem(VP_KEY, JSON.stringify(VP)); }catch(e){} }
+let voicePanelOpen=false;
+const vpFmt={rate:v=>(+v).toFixed(2)+'×', pitch:v=>(+v).toFixed(2), vol:v=>Math.round(v*100)+'%', noise:v=>Math.round(v*100)+'%'};
 function buildVoiceOptionsHTML(){
   const voices = getVoices();
   const english = voices.filter(v=>v.lang && v.lang.startsWith('en'));
   const list = english.length ? english : voices;
-  if(!list.length) return `<option value="">(no voices available)</option>`;
+  if(!list.length) return `<option value="">Default</option>`;
   return list.map(v=>`<option value="${esc(v.name)}" ${v.name===selectedVoiceName?'selected':''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('');
 }
-function refreshVoiceSelects(){
-  document.querySelectorAll('.voiceSelect').forEach(el=>{ el.innerHTML = buildVoiceOptionsHTML(); });
+function vpToggleHTML(){
+  return `<button type="button" class="vpToggle" aria-expanded="${voicePanelOpen}" aria-controls="vpPanel" onclick="toggleVoicePanel()"
+    title="Voice &amp; radio" aria-label="Voice and radio settings${muteATC?' (ATC muted)':''}"><span class="vpIcon" aria-hidden="true">${muteATC?'🔇':'🔊'}</span></button>`;
 }
+function vpSlider(id,label,min,max,step){
+  return `<div class="vpSlider"><span>${label}</span><input type="range" min="${min}" max="${max}" step="${step}" value="${VP[id]}"
+    aria-label="${label}" oninput="vpSlide('${id}',this)" onchange="vpSave()"><output id="vpOut_${id}">${vpFmt[id](VP[id])}</output></div>`;
+}
+function voicePanelHTML(){
+  return `<div class="vpPanel" id="vpPanel" ${voicePanelOpen?'':'hidden'}>
+    <div class="vpHead">▾ Voice &amp; radio</div>
+    <label class="vpChk" style="margin:0 0 8px;"><input type="checkbox" ${muteATC?'checked':''} onchange="setMute(this.checked)"> Mute ATC <small>(no auto-play; Replay still works)</small></label>
+    <label class="vpLabel" for="vpVoice">Controller voice</label>
+    <select id="vpVoice" class="voiceSelect" onchange="onVoiceChange(this)">${buildVoiceOptionsHTML()}</select>
+    ${vpSlider('rate','Speed',0.6,1.6,0.05)}
+    <div class="vpPresets">${[['Relaxed',0.85],['Normal',1],['Busy',1.15],['LA Saturday',1.3]].map(([n,r])=>`<button type="button" class="vpBtn" onclick="vpPreset(${r})">${n}</button>`).join('')}</div>
+    ${vpSlider('pitch','Pitch',0.6,1.4,0.05)}
+    ${vpSlider('vol','Volume',0.1,1,0.05)}
+    ${vpSlider('noise','Static',0,1,0.05)}
+    <label class="vpChk"><input type="checkbox" ${VP.squelch?'checked':''} onchange="VP.squelch=this.checked;vpSave()"> Squelch click at start and end of each transmission</label>
+    <div style="margin-top:8px"><button type="button" class="vpBtn" onclick="vpSample()">▶ Play sample</button></div>
+    <p class="vpHint">Static plays under the voice; the browser's voice itself can't be filtered to sound like a radio. Saved on this device.</p>
+  </div>`;
+}
+function toggleVoicePanel(){
+  voicePanelOpen=!voicePanelOpen;
+  document.querySelectorAll('.vpPanel').forEach(el=>el.hidden=!voicePanelOpen);
+  document.querySelectorAll('.vpToggle').forEach(el=>el.setAttribute('aria-expanded', String(voicePanelOpen)));
+}
+function vpSlide(id,el){
+  VP[id]=+el.value; const o=document.getElementById('vpOut_'+id); if(o) o.textContent=vpFmt[id](el.value);
+  if(id==='noise' && RADIO.bed && RADIO.on) RADIO.bed.gain.setTargetAtTime(VP.noise*0.6, audioCtx.currentTime, 0.02);
+}
+function vpPreset(r){
+  VP.rate=r; vpSave();
+  document.querySelectorAll('.vpPanel input[aria-label="Speed"]').forEach(el=>el.value=r);
+  const o=document.getElementById('vpOut_rate'); if(o) o.textContent=vpFmt.rate(r);
+}
+function vpSample(){
+  const q = (typeof QUESTIONS!=='undefined' && qi<TOTAL) ? QUESTIONS[qi] : null;
+  const t = q && q.type!=='mc' && q.atc.trim().charAt(0)!=='(' ? q.atc : 'Descend and maintain four thousand.';
+  speak(t);
+}
+function setMute(on){ muteATC=!!on; if(muteATC) try{window.speechSynthesis.cancel();}catch(e){} syncVoiceSelects(); vpSave(); }
 function syncVoiceSelects(){
   const opts = buildVoiceOptionsHTML();
   document.querySelectorAll('.voiceSelect').forEach(el=>{ el.innerHTML = opts; });
+  document.querySelectorAll('.vpIcon').forEach(el=>{ el.textContent = muteATC?'🔇':'🔊'; });
 }
-function onVoiceChange(el){ selectedVoiceName = el.value; syncVoiceSelects(); }
+function refreshVoiceSelects(){ syncVoiceSelects(); }
+function onVoiceChange(el){ if(el.value){ selectedVoiceName = el.value; vpSave(); } }
 function getChosenVoice(){
   const voices = getVoices();
   if(selectedVoiceName){ const v=voices.find(v=>v.name===selectedVoiceName); if(v) return v; }
@@ -553,6 +629,43 @@ function playBoing(){
 }
 function beep(good){ getAudioCtx(); if(good) playDing(); else playBoing(); }
 
+// ---- radio audio: static bed + squelch clicks (Web Audio, no files; App Conventions §12) ----
+const RADIO={buf:null, bed:null, on:false};
+function radioInit(){
+  try{
+    const ctx = getAudioCtx();
+    if(!RADIO.buf){
+      const sr=ctx.sampleRate, buf=ctx.createBuffer(1, sr*2, sr), d=buf.getChannelData(0);
+      let b0=0,b1=0,b2=0;
+      for(let i=0;i<d.length;i++){ const w=Math.random()*2-1; b0=.99765*b0+w*.0990460; b1=.96300*b1+w*.2965164; b2=.57000*b2+w*1.0526913; d[i]=(b0+b1+b2+w*.1848)*.11; }
+      RADIO.buf=buf;
+      const src=ctx.createBufferSource(); src.buffer=buf; src.loop=true;
+      const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1600; bp.Q.value=0.6;
+      RADIO.bed=ctx.createGain(); RADIO.bed.gain.value=0;
+      src.connect(bp).connect(RADIO.bed).connect(ctx.destination); src.start();
+    }
+    return ctx;
+  }catch(e){ return null; }
+}
+function squelchClick(level){
+  if(!VP.squelch || !RADIO.buf || !audioCtx) return;
+  const ctx=audioCtx, t=ctx.currentTime, src=ctx.createBufferSource(); src.buffer=RADIO.buf;
+  const g=ctx.createGain(), hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=900;
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.5*level, t+0.005); g.gain.exponentialRampToValueAtTime(0.001, t+0.14);
+  src.connect(hp).connect(g).connect(ctx.destination); src.start(t, Math.random()); src.stop(t+0.16);
+}
+function radioOn(){
+  if(!RADIO.bed) return; RADIO.on=true;
+  const t=audioCtx.currentTime; squelchClick(Math.max(VP.noise,0.35));
+  RADIO.bed.gain.cancelScheduledValues(t); RADIO.bed.gain.setTargetAtTime(VP.noise*0.6, t+0.03, 0.02);
+}
+function radioOff(){
+  if(!RADIO.bed || !RADIO.on) return; RADIO.on=false;
+  const t=audioCtx.currentTime;
+  RADIO.bed.gain.cancelScheduledValues(t); RADIO.bed.gain.setTargetAtTime(0, t, 0.02);
+  squelchClick(Math.max(VP.noise,0.35));
+}
+
 
 const DIGIT_WORDS={'0':'zero','1':'one','2':'two','3':'three','4':'four','5':'five','6':'six','7':'seven','8':'eight','9':'nine'};
 function spellDigits(numStr){ return numStr.split('').map(d=>DIGIT_WORDS[d]).join(' '); }
@@ -586,16 +699,13 @@ function speak(text){
     window.speechSynthesis.cancel();
     const spoken = speakifyWaypoints(speakifyHeadings(text.replace(/[()]/g,'')));
     const u = new SpeechSynthesisUtterance(spoken);
-    u.rate = 0.98;
+    u.rate = Math.min(2, VP.rate||1); u.pitch = VP.pitch||1; u.volume = VP.vol;
     const v = getChosenVoice(); if(v) u.voice = v;
+    if(VP.squelch || VP.noise>0){ radioInit(); u.onstart = radioOn; u.onend = radioOff; u.onerror = radioOff; }
     window.speechSynthesis.speak(u);
   }catch(e){}
 }
 function speakATC(text){ if(!muteATC) speak(text); }
-function toggleMuteATC(el){ muteATC = el.checked; if(muteATC) try{window.speechSynthesis.cancel();}catch(e){} syncMuteBoxes(); }
-function syncMuteBoxes(){
-  document.querySelectorAll('.muteATCBox').forEach(b=>b.checked=muteATC);
-}
 
 // ---- ownship symbol on flight images: red low-wing, top-down, nose up at 0 deg ----
 // ac.x / ac.y = centre (% of image), ac.w = width (% of image); maps are north-up,
@@ -695,14 +805,13 @@ function render(){
   let html = `
     <div class="topbar">
       <select class="flightSelect" onchange="jumpToFlight(parseInt(this.value))">
-        ${FLIGHTS.map((f,fi)=>`<option value="${fi}" ${fi===q.flightIdx?'selected':''}>Flight ${fi+1} of ${FLIGHTS.length}</option>`).join('')}
+        ${FLIGHTS.map((f,fi)=>`<option value="${fi}" ${fi===q.flightIdx?'selected':''}>Flight ${fi+1}/${FLIGHTS.length}</option>`).join('')}
       </select>
-      <span class="tbChip">Q ${qi+1} of ${TOTAL}</span>
-      <span class="tbChip">Score: <b>${score}</b> / ${answered?qi+1:qi}</span>
-      <label class="tbChip"><input type="checkbox" class="muteATCBox" ${muteATC?'checked':''} onchange="toggleMuteATC(this)"> Mute ATC</label>
-      <label class="tbChip">Voice: <select class="voiceSelect" onchange="onVoiceChange(this)">${buildVoiceOptionsHTML()}</select></label>
-      <button class="tbChip tbShareBtn ggp-share" type="button">📤 Share</button>
+      <span class="tbChip">Q ${qi+1}/${TOTAL}</span>
+      <span class="tbChip">Score <b>${score}</b>/${answered?qi+1:qi}</span>
+      ${vpToggleHTML()}
     </div>
+    ${voicePanelHTML()}
     <div class="progressWrap"><div class="progressBar" style="width:${pct}%"></div></div>
   `;
 
@@ -844,8 +953,7 @@ function renderSummary(app){
   let html = `<h1>Debrief</h1><p class="sub">All ${TOTAL} rows across all 9 flights, complete.</p>
     <div class="card" style="text-align:center;">
       <div class="summaryScore">${score} / ${TOTAL}</div>
-      <div style="color:var(--muted);font-family:var(--mono);font-size:13px;margin-bottom:16px;">${pct}% of Command Line calls correct</div>
-      <button class="shareBtn ggp-share" type="button">📤 Share GeezerGeek Pilot Apps with pilot friends</button>
+      <div style="color:var(--muted);font-family:var(--mono);font-size:13px;">${pct}% of Command Line calls correct</div>
     </div>
     <div class="slotsLabel">THE SIX THINGS WORTH REMEMBERING</div>`;
   [1,2,3,4,5,6].forEach(n=>{
@@ -878,10 +986,8 @@ function renderIntro(){
       <div class="atcRow"><div class="atcIcon">✈️</div><div style="flex:1">
         <div class="atcLabel">BEFORE YOU START</div>
         <div class="atcText">ATC plays out loud automatically. Chart links appear where the source notes reference an actual approach.</div>
-        <div class="muteRow" style="margin-top:12px;">
-          <label><input type="checkbox" class="muteATCBox" ${muteATC?'checked':''} onchange="toggleMuteATC(this)"> Mute ATC</label>
-          <label>Voice: <select class="voiceSelect" onchange="onVoiceChange(this)">${buildVoiceOptionsHTML()}</select></label>
-        </div>
+        <div class="muteRow" style="margin-top:10px;">${vpToggleHTML()}<span>Voice &amp; radio, mute</span></div>
+        ${voicePanelHTML()}
       </div></div>
       <button class="startBtn" onclick="startQuiz()">Start Flight 1 →</button>
     </div>
