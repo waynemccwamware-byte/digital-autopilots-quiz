@@ -258,7 +258,7 @@
 const AP_OPTS=['AP','FD'];
 const LAT_ARMED_OPTS=['HDG','NAV','GPS','LOC'];
 const LAT_ACTIVE_OPTS=['HDG','NAV','GPS','LOC','TO or GA'];
-const VERT_ARMED_OPTS=['IAS','ALTS','VS','VP','GP','GS','VP/GP'];
+const VERT_ARMED_OPTS=['IAS','ALTS','ALTV','VS','VP','GP','GS','VP/GP'];
 const VERT_ACTIVE_OPTS=['IAS','ALT','VS','GS','GP','VP','TO or GA'];
 
 // ---- Key insight content, tied to the 6 concepts you flagged ----
@@ -355,7 +355,7 @@ const FLIGHTS=[
    correct:{ap:'AP',latArmed:'',latActive:'GPS',vertArmed:'VP',vertActive:'ALT'}},
   {atc:"(Upon reaching Top of Descent)",
    actions:[], note:"No pilot action — the autopilot begins the VNAV descent automatically at the Top of Descent.",
-   correct:{ap:'AP',latArmed:'',latActive:'GPS',vertArmed:'',vertActive:'VP'}},
+   correct:{ap:'AP',latArmed:'',latActive:'GPS',vertArmed:'ALTV',vertActive:'VP'}},
   {atc:"(Upon reaching 1,000' AGL)",
    actions:[], note:"No pilot action — the autopilot levels off automatically at the target altitude.",
    correct:{ap:'AP',latArmed:'',latActive:'GPS',vertArmed:'',vertActive:'ALT'}},
