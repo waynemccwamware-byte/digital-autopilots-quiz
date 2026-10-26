@@ -185,6 +185,34 @@
   .kiRecap b{color:var(--amber);font-size:13px;}
   .kiRecap p{margin:5px 0 0;font-size:13.5px;line-height:1.55;color:var(--muted);}
 
+  /* Study mode (26-Oct-2026): step back and forth; score marked unofficial */
+  .smRow{display:flex;align-items:flex-start;gap:9px;margin:14px 2px 0;font-size:13.5px;color:var(--text);cursor:pointer;line-height:1.45;}
+  .smRow input{width:18px;height:18px;accent-color:var(--amber);flex:none;margin:1px 0 0;cursor:pointer;}
+  .smRow small{display:block;color:var(--muted);font-size:12px;}
+  .smNav{flex:0 0 auto;width:28px;height:26px;padding:0;border-radius:6px;border:1px solid var(--line);background:var(--panel2);
+    color:var(--text);font:600 16px/1 var(--mono);cursor:pointer;}
+  .smNav:hover:not(:disabled){border-color:var(--amber);color:var(--amber);}
+  .smNav:disabled{opacity:.35;cursor:default;}
+  .smStar{color:var(--amber);}
+  .topbar .smNav{display:inline-block;}
+  .topbar select.flightSelect{flex:0 0 auto;}
+  .smTb{gap:4px;cursor:pointer;color:var(--muted);}
+  .smTb input{width:15px;height:15px;margin:0;}
+  @media (max-width:480px){                                  /* phones: one row still fits */
+    .topbar .smNav{display:none;}                            /* use the ‹ › beside Next question */
+    .topbar .tbWord{display:none;}                           /* "Score" word; the numbers stay */
+    .topbar{gap:6px 7px;padding:6px 8px;}
+  }
+  @media (max-width:350px){ .topbar{flex-wrap:wrap;} }       /* very small phones: allow a second row */
+  .navRow{display:flex;gap:8px;align-items:stretch;margin-top:10px;}
+  .navRow > .submitBtn,.navRow > .nextBtn{margin-top:0;flex:1;}
+  .navRow > .smNav{width:46px;height:auto;font-size:20px;border-radius:10px;}
+  .tryBtn{width:100%;margin-top:8px;padding:9px;border-radius:10px;border:1px solid rgba(255,176,32,.45);
+    background:rgba(255,176,32,.08);color:var(--amber);font-weight:600;font-size:13.5px;cursor:pointer;}
+  .smBanner{margin:0 0 12px;padding:12px 14px;border-radius:10px;border:1.5px solid var(--amber);background:rgba(255,176,32,.10);
+    color:var(--amber);font-size:13.5px;line-height:1.5;}
+  .smBanner b{display:block;font-size:15px;margin-bottom:3px;}
+  .smBanner span{color:var(--text);}
   .replayBtn{width:100%;padding:13px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);
     color:var(--text);font-weight:600;font-size:14px;cursor:pointer;margin-top:16px;}
 
@@ -258,7 +286,7 @@
 const AP_OPTS=['AP','FD'];
 const LAT_ARMED_OPTS=['HDG','NAV','GPS','LOC'];
 const LAT_ACTIVE_OPTS=['HDG','NAV','GPS','LOC','TO or GA'];
-const VERT_ARMED_OPTS=['IAS','ALTS','VS','VP','GP','GS','VP/GP'];
+const VERT_ARMED_OPTS=['IAS','ALTS','ALTV','VS','VP','GP','GS','VP/GP'];
 const VERT_ACTIVE_OPTS=['IAS','ALT','VS','GS','GP','VP','TO or GA'];
 
 // ---- Key insight content, tied to the 6 concepts you flagged ----
@@ -355,7 +383,7 @@ const FLIGHTS=[
    correct:{ap:'AP',latArmed:'',latActive:'GPS',vertArmed:'VP',vertActive:'ALT'}},
   {atc:"(Upon reaching Top of Descent)",
    actions:[], note:"No pilot action — the autopilot begins the VNAV descent automatically at the Top of Descent.",
-   correct:{ap:'AP',latArmed:'',latActive:'GPS',vertArmed:'',vertActive:'VP'}},
+   correct:{ap:'AP',latArmed:'',latActive:'GPS',vertArmed:'ALTV',vertActive:'VP'}},
   {atc:"(Upon reaching 1,000' AGL)",
    actions:[], note:"No pilot action — the autopilot levels off automatically at the target altitude.",
    correct:{ap:'AP',latArmed:'',latActive:'GPS',vertArmed:'',vertActive:'ALT'}},
@@ -475,6 +503,12 @@ QUESTIONS.forEach((q,i)=>{ q.sit = SIT[i] || null; });
 
 
 let qi=0, score=0, answered=false, guess=blankGuess(), mcSel=null, pendingKI=null;
+// Study mode (26-Oct-2026): off by default each visit, not saved. One result per question, so a question
+// revisited or retried never counts twice. Score = first try only, in both modes.
+let studyMode=false, studyUsed=false;   // studyUsed: Study mode was on at any point this run, so the score stays unofficial
+let results=[];   // results[i] = {first:bool, good:bool, guess, mcSel, tries:n} once question i is checked
+function resetResults(){ results=new Array(QUESTIONS.length).fill(null); score=0; }
+function answeredCount(){ return results.filter(Boolean).length; }
 function blankGuess(){ return {ap:'',latArmed:'',latActive:'',vertActive:'',vertArmed:''}; }
 function defaultGuessFor(idx){
   const q = QUESTIONS[idx];
@@ -809,15 +843,18 @@ function render(){
   const app=document.getElementById('app');
   if(qi>=TOTAL){ renderSummary(app); return; }
   const q=QUESTIONS[qi];
-  const pct = Math.round((qi/TOTAL)*100);
+  const pct = Math.round((studyMode?answeredCount():qi)/TOTAL*100);
 
   let html = `
     <div class="topbar">
-      <select class="flightSelect" onchange="jumpToFlight(parseInt(this.value))">
-        ${FLIGHTS.map((f,fi)=>`<option value="${fi}" ${fi===q.flightIdx?'selected':''}>Flight ${fi+1}/${FLIGHTS.length}</option>`).join('')}
-      </select>
+      ${studyMode?`<select class="flightSelect" aria-label="Jump to flight" onchange="jumpToFlight(parseInt(this.value))">
+        ${FLIGHTS.map((f,fi)=>`<option value="${fi}" ${fi===q.flightIdx?'selected':''}>${narrowBar()?'Flt':'Flight'} ${fi+1}/${FLIGHTS.length}</option>`).join('')}
+      </select>`:`<span class="tbChip">Flight ${q.flightIdx+1}/${FLIGHTS.length}</span>`}
+      ${studyMode?`<button class="smNav" type="button" aria-label="Previous question" onclick="go(qi-1)" ${qi===0?'disabled':''}>‹</button>`:''}
       <span class="tbChip">Q ${qi+1}/${TOTAL}</span>
-      <span class="tbChip">Score <b>${score}</b>/${answered?qi+1:qi}</span>
+      ${studyMode?`<button class="smNav" type="button" aria-label="Next question" onclick="go(qi+1)">›</button>`:''}
+      <span class="tbChip" ${studyUsed?'title="Study mode: first try only, unofficial"':''}><span class="tbWord">Score </span><b>${score}</b>/${answeredCount()}${studyUsed?'<span class="smStar">*</span>':''}</span>
+      <label class="tbChip smTb" title="Study mode: step back and forth, jump between flights, retry. Score becomes unofficial."><input type="checkbox" ${studyMode?'checked':''} onchange="setStudy(this.checked)">Study</label>
       ${vpToggleHTML()}
     </div>
     ${voicePanelHTML()}
@@ -889,10 +926,11 @@ function renderState(q){
   });
   h += `</div>`;
   if(!answered){
-    h += `<button class="submitBtn" onclick="submit()">Check Command Line</button>`;
+    h += navRow(`<button class="submitBtn" onclick="submit()">Check Command Line</button>`);
   } else {
     h += renderResultState(q);
-    h += `<button class="nextBtn" onclick="next()">${qi+1>=TOTAL?'Finish':'Next question →'}</button>`;
+    h += navRow(`<button class="nextBtn" onclick="next()">${qi+1>=TOTAL?'Finish':'Next question →'}</button>`);
+    h += tryAgainHTML();
   }
   h += `</div>`;
   return h;
@@ -917,12 +955,13 @@ function renderMC(q){
     h += `<div class="mcOption ${sel}" onclick="pickMC(${i})">${esc(opt)}</div>`;
   });
   if(!answered){
-    h += `<button class="submitBtn" ${mcSel===null?'disabled':''} onclick="submit()">Check Answer</button>`;
+    h += navRow(`<button class="submitBtn" ${mcSel===null?'disabled':''} onclick="submit()">Check Answer</button>`);
   } else {
     const good = mcSel===q.mcCorrect;
     h += `<div class="resultBanner ${good?'good':'bad'}">${good?'✓ Ding — correct.':'✗ Boing — correct answer highlighted below.'}</div>`;
     h += `<div style="margin-top:4px;font-size:13.5px;color:var(--muted);">Correct: ${esc(q.mcOptions[q.mcCorrect])}</div>`;
-    h += `<button class="nextBtn" onclick="next()">${qi+1>=TOTAL?'Finish':'Next question →'}</button>`;
+    h += navRow(`<button class="nextBtn" onclick="next()">${qi+1>=TOTAL?'Finish':'Next question →'}</button>`);
+    h += tryAgainHTML();
   }
   h += `</div>`;
   return h;
@@ -938,32 +977,73 @@ function submit(){
   else {
     good = ['ap','latArmed','latActive','vertArmed','vertActive'].every(k=>guess[k]===q.correct[k]);
   }
-  if(good) score++;
+  const r = results[qi];
+  if(!r){ results[qi] = {first:good, good, guess:{...guess}, mcSel, tries:1}; if(good) score++; }
+  else { r.good=good; r.guess={...guess}; r.mcSel=mcSel; r.tries++; }   // a retry never changes the score
   answered=true;
   beep(good);
+  render();
+}
+
+// ---- Study mode navigation ----
+function navRow(mainBtn){
+  if(!studyMode) return mainBtn;
+  return `<div class="navRow"><button class="smNav" type="button" aria-label="Previous question" onclick="go(qi-1)" ${qi===0?'disabled':''}>‹</button>${mainBtn}<button class="smNav" type="button" aria-label="Next question" onclick="go(qi+1)">›</button></div>`;
+}
+function tryAgainHTML(){
+  return studyMode ? `<button class="tryBtn" type="button" onclick="tryAgain()">↺ Try again <small style="font-weight:400;opacity:.8;">(first try still counts)</small></button>` : '';
+}
+function narrowBar(){ try{ return window.matchMedia('(max-width:480px)').matches; }catch(e){ return false; } }
+// Top-bar Study checkbox: switch mid-quiz. Once on, the run stays unofficial even if switched off again.
+function setStudy(on){ studyMode=!!on; if(studyMode) studyUsed=true; render(); }
+function tryAgain(){
+  if(!studyMode) return;
+  answered=false; guess=defaultGuessFor(qi); mcSel=null; render();
+}
+// Show question idx. Answered questions come back as answered (locked, with the result); ATC auto-plays
+// only for a question not yet answered. Past the last question = the debrief.
+function go(idx){
+  if(idx<0) return;
+  try{ window.speechSynthesis.cancel(); }catch(e){}
+  if(idx>=TOTAL){ qi=TOTAL; render(); return; }
+  qi=idx; pendingKI=null;
+  const r=results[idx];
+  if(r){ answered=true; guess={...r.guess}; mcSel=r.mcSel; lastSpokenQi=idx; }
+  else { answered=false; guess=defaultGuessFor(idx); mcSel=null; }
   render();
 }
 
 function jumpToFlight(flightIdx){
   const idx = QUESTIONS.findIndex(q=>q.flightIdx===flightIdx);
   if(idx<0) return;
-  qi=idx; answered=false; guess=defaultGuessFor(idx); mcSel=null; pendingKI=null; lastSpokenQi=-1;
-  render();
+  if(!studyMode) return;   // the Flight pull-down only shows in Study mode
+  lastSpokenQi=-1;
+  go(idx);
 }
 
-function next(){
-  qi++;
-  answered=false; guess=defaultGuessFor(qi); mcSel=null; pendingKI=null;
-  render();
-}
+function next(){ go(qi+1); }
 
 function renderSummary(app){
-  const pct = Math.round((score/TOTAL)*100);
-  let html = `<h1>Debrief</h1><p class="sub">All ${TOTAL} rows across all 9 flights, complete.</p>
+  let html;
+  if(!studyUsed){
+    const pct = Math.round((score/TOTAL)*100);
+    html = `<h1>Debrief</h1><p class="sub">All ${TOTAL} rows across all 9 flights, complete.</p>
     <div class="card" style="text-align:center;">
       <div class="summaryScore">${score} / ${TOTAL}</div>
       <div style="color:var(--muted);font-family:var(--mono);font-size:13px;">${pct}% of Command Line calls correct</div>
-    </div>
+    </div>`;
+  } else {
+    const n = answeredCount(), skipped = TOTAL - n, retried = results.filter(r=>r&&r.tries>1).length;
+    const pct = n ? Math.round(score/n*100) : 0;
+    html = `<h1>Debrief</h1>
+    <div class="smBanner" role="note"><b>⚠ Study mode — not a scored run</b>
+      <span>Study mode was on ${studyMode?'':'for part of '}this run, so you could step back and forth, retry, and jump between flights. The score below counts first tries only, and only the questions you answered.</span></div>
+    <div class="card" style="text-align:center;">
+      <div class="summaryScore" style="color:var(--amber);">${score} / ${n}<span style="font-size:28px;">*</span></div>
+      <div style="color:var(--muted);font-family:var(--mono);font-size:13px;line-height:1.6;">${pct}% right on the first try · ${n} of ${TOTAL} answered${skipped?` · ${skipped} skipped`:''}${retried?` · ${retried} retried`:''}<br>* Study mode. For an official score, fly it again with Study mode off.</div>
+    </div>`;
+  }
+  html += `
     <div class="slotsLabel">THE SIX THINGS WORTH REMEMBERING</div>`;
   [1,2,3,4,5,6].forEach(n=>{
     html += `<div class="kiRecap"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
@@ -971,12 +1051,13 @@ function renderSummary(app){
         <button class="voiceBtn" style="flex:0 0 auto;" onclick="speak(KI[${n}].text)">🔊</button>
       </div><p>${esc(KI[n].text)}</p></div>`;
   });
-  html += `<button class="replayBtn" onclick="restart()">Fly it again</button>`;
+  if(studyMode) html += `<button class="replayBtn" onclick="go(TOTAL-1)">‹ Back to the last question</button>`;
+  html += `<button class="replayBtn" ${studyMode?'style="margin-top:8px;"':''} onclick="restart()">Fly it again</button>`;
   html += renderFooter();
   app.innerHTML = html;
 }
 
-function restart(){ qi=0; score=0; answered=false; guess=defaultGuessFor(0); mcSel=null; render(); }
+function restart(){ resetResults(); renderIntro(); window.scrollTo(0,0); }   // back to the entry page, so Study mode can be changed
 
 function renderIntro(){
   const app=document.getElementById('app');
@@ -998,13 +1079,18 @@ function renderIntro(){
         <div class="muteRow" style="margin-top:10px;">${vpToggleHTML()}<span>Voice &amp; radio, mute</span></div>
         ${voicePanelHTML()}
       </div></div>
+      <label class="smRow"><input type="checkbox" id="smChk" ${studyMode?'checked':''} onchange="studyMode=this.checked">
+        <span>Study mode — step back and forth freely (score unofficial)
+        <small>← → keys or the ‹ › buttons move between questions; the Flight menu jumps between flights; retries allowed.</small></span></label>
       <button class="startBtn" onclick="startQuiz()">Start Flight 1 →</button>
     </div>
     ${renderFooter()}`;
   loadHitCounter();
 }
 
+let hitCounted=false;   // count one open per page load ("Fly it again" re-draws the entry page)
 function loadHitCounter(){
+  if(hitCounted) return; hitCounted=true;
   const el = document.getElementById('hitCounter');   // no element now: counts silently (App Conventions §6b)
   fetch('https://tally.yuki.sh/hits/wamware/digital-autopilots-quiz')
     .then(r => r.json())
@@ -1021,9 +1107,23 @@ function initAudio(){
   // needs to actually play here.
   getAudioCtx();
 }
-function startQuiz(){ initAudio(); qi=0; score=0; guess=defaultGuessFor(0); render(); }
+function startQuiz(){
+  initAudio();
+  const c=document.getElementById('smChk'); studyMode=!!(c&&c.checked); studyUsed=studyMode;
+  resetResults(); qi=0; answered=false; mcSel=null; lastSpokenQi=-1; guess=defaultGuessFor(0); render(); window.scrollTo(0,0);
+}
 
 document.addEventListener('keydown', function(e){
+  // Study mode: ← / → step between questions. Ignored while a pull-down, text field or slider has focus
+  // (arrows change its value there) and with modifier keys held.
+  if((e.key==='ArrowLeft'||e.key==='ArrowRight') && studyMode && document.querySelector('.topbar')||(e.key==='ArrowLeft'&&studyMode&&qi>=TOTAL)){
+    const t=e.target, tag=t&&t.tagName;
+    if(tag==='SELECT'||tag==='INPUT'||tag==='TEXTAREA'||(t&&t.isContentEditable)) return;
+    if(e.altKey||e.ctrlKey||e.metaKey||e.shiftKey) return;
+    e.preventDefault();
+    go(e.key==='ArrowLeft' ? (qi>=TOTAL?TOTAL-1:qi-1) : qi+1);
+    return;
+  }
   if(e.key!=='Enter') return;
   if(qi>=TOTAL) return;
   const q=QUESTIONS[qi];
