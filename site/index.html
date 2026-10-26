@@ -196,7 +196,14 @@
   .smStar{color:var(--amber);}
   .topbar .smNav{display:inline-block;}
   .topbar select.flightSelect{flex:0 0 auto;}
-  @media (max-width:480px){ .topbar .smNav{display:none;} }   /* phones: use the ‹ › beside Next question */
+  .smTb{gap:4px;cursor:pointer;color:var(--muted);}
+  .smTb input{width:15px;height:15px;margin:0;}
+  @media (max-width:480px){                                  /* phones: one row still fits */
+    .topbar .smNav{display:none;}                            /* use the ‹ › beside Next question */
+    .topbar .tbWord{display:none;}                           /* "Score" word; the numbers stay */
+    .topbar{gap:6px 7px;padding:6px 8px;}
+  }
+  @media (max-width:350px){ .topbar{flex-wrap:wrap;} }       /* very small phones: allow a second row */
   .navRow{display:flex;gap:8px;align-items:stretch;margin-top:10px;}
   .navRow > .submitBtn,.navRow > .nextBtn{margin-top:0;flex:1;}
   .navRow > .smNav{width:46px;height:auto;font-size:20px;border-radius:10px;}
@@ -498,7 +505,7 @@ QUESTIONS.forEach((q,i)=>{ q.sit = SIT[i] || null; });
 let qi=0, score=0, answered=false, guess=blankGuess(), mcSel=null, pendingKI=null;
 // Study mode (26-Oct-2026): off by default each visit, not saved. One result per question, so a question
 // revisited or retried never counts twice. Score = first try only, in both modes.
-let studyMode=false;
+let studyMode=false, studyUsed=false;   // studyUsed: Study mode was on at any point this run, so the score stays unofficial
 let results=[];   // results[i] = {first:bool, good:bool, guess, mcSel, tries:n} once question i is checked
 function resetResults(){ results=new Array(QUESTIONS.length).fill(null); score=0; }
 function answeredCount(){ return results.filter(Boolean).length; }
@@ -841,12 +848,13 @@ function render(){
   let html = `
     <div class="topbar">
       ${studyMode?`<select class="flightSelect" aria-label="Jump to flight" onchange="jumpToFlight(parseInt(this.value))">
-        ${FLIGHTS.map((f,fi)=>`<option value="${fi}" ${fi===q.flightIdx?'selected':''}>Flight ${fi+1}/${FLIGHTS.length}</option>`).join('')}
+        ${FLIGHTS.map((f,fi)=>`<option value="${fi}" ${fi===q.flightIdx?'selected':''}>${narrowBar()?'Flt':'Flight'} ${fi+1}/${FLIGHTS.length}</option>`).join('')}
       </select>`:`<span class="tbChip">Flight ${q.flightIdx+1}/${FLIGHTS.length}</span>`}
       ${studyMode?`<button class="smNav" type="button" aria-label="Previous question" onclick="go(qi-1)" ${qi===0?'disabled':''}>‹</button>`:''}
       <span class="tbChip">Q ${qi+1}/${TOTAL}</span>
       ${studyMode?`<button class="smNav" type="button" aria-label="Next question" onclick="go(qi+1)">›</button>`:''}
-      <span class="tbChip" ${studyMode?'title="Study mode: first try only, unofficial"':''}>Score <b>${score}</b>/${answeredCount()}${studyMode?'<span class="smStar">*</span>':''}</span>
+      <span class="tbChip" ${studyUsed?'title="Study mode: first try only, unofficial"':''}><span class="tbWord">Score </span><b>${score}</b>/${answeredCount()}${studyUsed?'<span class="smStar">*</span>':''}</span>
+      <label class="tbChip smTb" title="Study mode: step back and forth, jump between flights, retry. Score becomes unofficial."><input type="checkbox" ${studyMode?'checked':''} onchange="setStudy(this.checked)">Study</label>
       ${vpToggleHTML()}
     </div>
     ${voicePanelHTML()}
@@ -985,6 +993,9 @@ function navRow(mainBtn){
 function tryAgainHTML(){
   return studyMode ? `<button class="tryBtn" type="button" onclick="tryAgain()">↺ Try again <small style="font-weight:400;opacity:.8;">(first try still counts)</small></button>` : '';
 }
+function narrowBar(){ try{ return window.matchMedia('(max-width:480px)').matches; }catch(e){ return false; } }
+// Top-bar Study checkbox: switch mid-quiz. Once on, the run stays unofficial even if switched off again.
+function setStudy(on){ studyMode=!!on; if(studyMode) studyUsed=true; render(); }
 function tryAgain(){
   if(!studyMode) return;
   answered=false; guess=defaultGuessFor(qi); mcSel=null; render();
@@ -1014,7 +1025,7 @@ function next(){ go(qi+1); }
 
 function renderSummary(app){
   let html;
-  if(!studyMode){
+  if(!studyUsed){
     const pct = Math.round((score/TOTAL)*100);
     html = `<h1>Debrief</h1><p class="sub">All ${TOTAL} rows across all 9 flights, complete.</p>
     <div class="card" style="text-align:center;">
@@ -1026,7 +1037,7 @@ function renderSummary(app){
     const pct = n ? Math.round(score/n*100) : 0;
     html = `<h1>Debrief</h1>
     <div class="smBanner" role="note"><b>⚠ Study mode — not a scored run</b>
-      <span>You could step back and forth, retry, and jump between flights. The score below counts first tries only, and only the questions you answered.</span></div>
+      <span>Study mode was on ${studyMode?'':'for part of '}this run, so you could step back and forth, retry, and jump between flights. The score below counts first tries only, and only the questions you answered.</span></div>
     <div class="card" style="text-align:center;">
       <div class="summaryScore" style="color:var(--amber);">${score} / ${n}<span style="font-size:28px;">*</span></div>
       <div style="color:var(--muted);font-family:var(--mono);font-size:13px;line-height:1.6;">${pct}% right on the first try · ${n} of ${TOTAL} answered${skipped?` · ${skipped} skipped`:''}${retried?` · ${retried} retried`:''}<br>* Study mode. For an official score, fly it again with Study mode off.</div>
@@ -1098,7 +1109,7 @@ function initAudio(){
 }
 function startQuiz(){
   initAudio();
-  const c=document.getElementById('smChk'); studyMode=!!(c&&c.checked);
+  const c=document.getElementById('smChk'); studyMode=!!(c&&c.checked); studyUsed=studyMode;
   resetResults(); qi=0; answered=false; mcSel=null; lastSpokenQi=-1; guess=defaultGuessFor(0); render(); window.scrollTo(0,0);
 }
 
