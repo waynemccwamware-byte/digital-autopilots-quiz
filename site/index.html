@@ -440,7 +440,7 @@ const FLIGHTS=[
 {title:'Flight 8', sub:'Missed Approach', cont:"[continuing from Flight 7]", rows:[
   {atc:"(Upon reaching DA)",
    actions:["Push the Go-Around button (note: we're assuming the Autopilot remains engaged; some installations revert to FD)","Power up, steadily to full","Confirm pitch up","Confirm/engage the autopilot"],
-   correct:{ap:'AP',latArmed:'',latActive:'TO or GA',vertArmed:'',vertActive:'TO or GA'}},
+   correct:{ap:'AP',latArmed:'',latActive:'TO or GA',vertArmed:'ALTS',vertActive:'TO or GA'}},
   {atc:"(Before reaching the Missed Approach Point)",
    actions:["Press NAV for the published missed (or HDG for an assigned missed heading)","Clean up (flaps in sequence), talk up","Press IAS; set desired initial climb speed"],
    correct:{ap:'AP',latArmed:'',latActive:'GPS',vertArmed:'ALTS',vertActive:'IAS'},
